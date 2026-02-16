@@ -7,6 +7,7 @@ AirConsole-like platform where phones become game controllers for browser-based 
 ```
 web-console/
 ├── client/          # React + Vite frontend
+├── ping-pong/          # React + Vite simple example of game
 └── server/          # Express + Socket.IO backend
 ```
 
@@ -46,11 +47,3 @@ Client runs on `http://localhost:3000`
 - **Room-based system** with unique codes
 - **Device roles**: Screen (TV) and Controller (Phone)
 - **Event-driven**: Controllers send actions to screens
-
-## Next Steps
-
-- [ ] Implement Screen and Controller components
-- [ ] Add QR code generation for easy joining
-- [ ] Create controller UI builder API
-- [ ] Build demo game
-- [ ] Add custom controller layouts
