@@ -44,29 +44,19 @@ export const setupSocketHandlers = (io, roomManager) => {
       }
     });
 
-    // Rejoin handlers (for navigation between pages)
-    socket.on("rejoin-room-as-screen", ({ roomCode }, callback) => {
+    socket.on("get-room-state", ({ roomCode }, callback) => {
       const room = roomManager.getRoom(roomCode);
       if (room) {
-        room.screen = socket.id;
-        socket.join(roomCode);
-        console.log(`Screen ${socket.id} rejoined room: ${roomCode}`);
-        // Send back current room state
+        console.log(`Sending room state for ${roomCode} to ${socket.id}`);
         callback({
           success: true,
           controllers: room.controllers,
           totalControllers: room.controllers.length,
         });
       } else {
-        console.log(`Room ${roomCode} not found for screen rejoin`);
+        console.log(`Room ${roomCode} not found for get-room-state`);
         callback({ success: false, error: "Room not found" });
       }
-    });
-
-    socket.on("rejoin-room-as-controller", ({ roomCode }, callback) => {
-      socket.join(roomCode);
-      console.log(`Controller ${socket.id} rejoined room: ${roomCode}`);
-      callback({ success: true });
     });
 
     // Disconnect

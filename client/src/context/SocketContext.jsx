@@ -21,20 +21,18 @@ export const SocketProvider = ({ children }) => {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    // Disconnect if navigating to home or initial controller page (not connected yet)
+    // Only disconnect if navigating to home page
     const isHomePage = location.pathname === "/";
-    const isControllerJoinPage =
-      location.pathname === "/controller" && !location.search;
 
-    if ((isHomePage || isControllerJoinPage) && socketRef.current) {
-      console.log("Leaving connected pages, disconnecting socket");
+    if (isHomePage && socketRef.current) {
+      console.log("Navigating to home, disconnecting socket");
       socketRef.current.disconnect();
       socketRef.current.close();
       socketRef.current = null;
       setSocket(null);
       setIsConnected(false);
     }
-  }, [location.pathname, location.search]);
+  }, [location.pathname]);
 
   const connect = () => {
     if (socketRef.current?.connected) {

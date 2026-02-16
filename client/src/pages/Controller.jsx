@@ -8,32 +8,9 @@ import WaitingForStart from "../components/controller/WaitingForStart";
 // Active Controller View Component
 function ActiveControllerView({ socket, roomCode }) {
   const [activeButton, setActiveButton] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    const setupConnection = () => {
-      socket.emit("rejoin-room-as-controller", { roomCode }, (response) => {
-        if (response.success) {
-          setIsConnected(true);
-        }
-      });
-    };
-
-    if (socket.connected) {
-      setupConnection();
-    } else {
-      socket.once("connect", setupConnection);
-    }
-
-    return () => {
-      socket.off("connect", setupConnection);
-    };
-  }, [socket, roomCode]);
 
   const sendAction = (action) => {
-    if (socket && isConnected) {
+    if (socket) {
       setActiveButton(action);
       socket.emit("controller-input", {
         roomCode,
@@ -43,7 +20,7 @@ function ActiveControllerView({ socket, roomCode }) {
     }
   };
 
-  if (!isConnected) {
+  if (!socket) {
     return (
       <div className='min-h-screen flex items-center justify-center'>
         <div className='text-center'>
@@ -157,22 +134,33 @@ function Controller() {
   useEffect(() => {
     if (!socket) return;
 
+    console.log("[Controller] Setting up socket listeners");
+
     // Listen for game start
-    socket.on("game-started", () => {
-      console.log("Game started, showing active controller");
+    const handleGameStarted = () => {
+      console.log(
+        "[Controller] game-started event received, switching to active-controller",
+      );
       setCurrentView("active-controller");
-    });
+    };
+
+    socket.on("game-started", handleGameStarted);
 
     // Listen for game controller load
-    socket.on("load-game-controller", ({ url, gameId }) => {
-      console.log(`Loading game controller: ${gameId} at ${url}`);
+    const handleLoadGameController = ({ url, gameId }) => {
+      console.log(
+        `[Controller] load-game-controller event received: ${gameId} at ${url}`,
+      );
       setGameUrl(url);
       setCurrentView("game");
-    });
+    };
+
+    socket.on("load-game-controller", handleLoadGameController);
 
     return () => {
-      socket.off("game-started");
-      socket.off("load-game-controller");
+      console.log("[Controller] Cleaning up socket listeners");
+      socket.off("game-started", handleGameStarted);
+      socket.off("load-game-controller", handleLoadGameController);
     };
   }, [socket]);
 
@@ -182,13 +170,28 @@ function Controller() {
       const activeSocket = socket || connect();
 
       const setupListeners = () => {
+        // Set up game-started listener BEFORE emitting join-room
+        const gameStartedHandler = () => {
+          console.log("Game started event received in handleJoinRoom");
+          setCurrentView("active-controller");
+        };
+
+        activeSocket.once("game-started", gameStartedHandler);
+
         activeSocket.emit("join-room", { roomCode: code }, (response) => {
           console.log("Join room response:", response);
           if (response.error) {
+            activeSocket.off("game-started", gameStartedHandler);
             reject(new Error(response.error));
           } else {
             setRoomCode(code);
-            setCurrentView(response.isFirstPlayer ? "first-player" : "waiting");
+            // Only set view if not already in game mode
+            // If in game mode, game-started event will handle it
+            if (!response.inGame) {
+              setCurrentView(
+                response.isFirstPlayer ? "first-player" : "waiting",
+              );
+            }
             resolve();
           }
         });

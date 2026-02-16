@@ -53,16 +53,18 @@ function GameRepository() {
 
     console.log("GameRepository mounted, roomCode:", roomCode);
 
+    // Socket is already in the room from Screen component
+    // Just fetch current room state
     const setupConnection = () => {
-      console.log("GameRepository socket connected");
-      socket.emit("rejoin-room-as-screen", { roomCode }, (response) => {
+      console.log("GameRepository using existing socket connection");
+      // Emit a simple event to get current room state without rejoining
+      socket.emit("get-room-state", { roomCode }, (response) => {
         if (response.success) {
           console.log("Room state received:", response);
-          // Initialize controllers from room state
           const controllerList = response.controllers.map((id) => ({ id }));
           setControllers(controllerList);
         } else {
-          console.error("Failed to rejoin room:", response.error);
+          console.error("Failed to get room state:", response.error);
         }
       });
     };
@@ -118,32 +120,43 @@ function GameRepository() {
     const selectedGame = games[selectedGameIndex];
     console.log("Game selected:", selectedGame);
 
-    // Check if we have the right number of players
-    const playerCount = controllers.length;
-    if (playerCount < selectedGame.minPlayers) {
-      console.log(
-        `Not enough players: ${playerCount}/${selectedGame.minPlayers} required`,
-      );
-      // Could show an error message to the user here
-      return;
-    }
+    // Get fresh controller count from server to avoid stale state
+    socket.emit("get-room-state", { roomCode }, (response) => {
+      if (!response.success) {
+        console.error("Failed to get room state:", response.error);
+        return;
+      }
 
-    if (playerCount > selectedGame.maxPlayers) {
-      console.log(
-        `Too many players: ${playerCount}/${selectedGame.maxPlayers} maximum`,
-      );
-      // Could show an error message to the user here
-      return;
-    }
+      const playerCount = response.controllers.length;
+      console.log("Current controllers state:", response.controllers);
+      console.log("Controllers length:", playerCount);
 
-    if (socket && selectedGame.gameServerUrl) {
-      // Notify main server to start the game
-      socket.emit("start-game", {
-        roomCode,
-        gameId: selectedGame.id,
-        gameServerUrl: selectedGame.gameServerUrl,
-      });
-    }
+      // Check if we have the right number of players
+      if (playerCount < selectedGame.minPlayers) {
+        console.log(
+          `Not enough players: ${playerCount}/${selectedGame.minPlayers} required`,
+        );
+        // Could show an error message to the user here
+        return;
+      }
+
+      if (playerCount > selectedGame.maxPlayers) {
+        console.log(
+          `Too many players: ${playerCount}/${selectedGame.maxPlayers} maximum`,
+        );
+        // Could show an error message to the user here
+        return;
+      }
+
+      if (socket && selectedGame.gameServerUrl) {
+        // Notify main server to start the game
+        socket.emit("start-game", {
+          roomCode,
+          gameId: selectedGame.id,
+          gameServerUrl: selectedGame.gameServerUrl,
+        });
+      }
+    });
   };
 
   const handleControllerInput = (action) => {

@@ -53,5 +53,19 @@ export const handleJoinRoom = (
     totalControllers: result.totalControllers,
   });
 
-  callback(result);
+  // If room is already in game mode, immediately send game-started event to new controller
+  if (room.inGame) {
+    console.log(
+      `Room ${roomCode} is in game mode, sending game-started to new controller ${socket.id}`,
+    );
+    socket.emit("game-started", {
+      totalControllers: result.totalControllers,
+    });
+  }
+
+  // Include inGame status in the response
+  callback({
+    ...result,
+    inGame: room.inGame,
+  });
 };
