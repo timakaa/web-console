@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
@@ -7,6 +7,19 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "";
 function Home() {
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Detect if device is mobile based on screen width
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // 768px is typical tablet/mobile breakpoint
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleStartPlaying = async () => {
     setIsCreating(true);
@@ -46,26 +59,30 @@ function Home() {
     <div className='min-h-screen flex flex-col items-center justify-center p-8 text-center'>
       <h1 className='text-5xl font-bold mb-2'>Web Console</h1>
       <p className='text-xl text-gray-400 mb-12'>
-        Turn your phone into a game controller
+        {isMobile
+          ? "Turn your phone into a game controller"
+          : "Play games with your phone as a controller"}
       </p>
 
       <div className='flex flex-col gap-6 w-full max-w-xs'>
-        <button
-          className='px-8 py-4 text-lg font-medium bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed'
-          onClick={handleStartPlaying}
-          disabled={isCreating}
-        >
-          {isCreating ? "Creating Room..." : "Start Playing"}
-        </button>
-
-        <div className='text-gray-500 text-sm'>or</div>
-
-        <button
-          className='px-6 py-3 font-medium bg-transparent border-2 border-indigo-600 hover:bg-indigo-600 rounded-lg transition-colors'
-          onClick={handleJoinAsController}
-        >
-          Join as Controller
-        </button>
+        {isMobile ? (
+          // Mobile: Show only "Connect Controller" button
+          <button
+            className='px-8 py-4 text-lg font-medium bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors'
+            onClick={handleJoinAsController}
+          >
+            Connect Controller
+          </button>
+        ) : (
+          // Desktop: Show only "Start Playing" button
+          <button
+            className='px-8 py-4 text-lg font-medium bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed'
+            onClick={handleStartPlaying}
+            disabled={isCreating}
+          >
+            {isCreating ? "Creating Room..." : "Start Playing"}
+          </button>
+        )}
       </div>
     </div>
   );
