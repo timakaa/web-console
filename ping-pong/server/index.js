@@ -51,6 +51,11 @@ io.on("connection", (socket) => {
       })),
       ball: { x: 50, y: 50, vx: 0.5, vy: 0.6 },
       gameStarted: false,
+      settings: {
+        winScore: 5,
+        difficulty: "normal",
+        selectedSetting: "winScore", // "winScore" or "difficulty"
+      },
     });
 
     // Send initial state
@@ -116,17 +121,53 @@ io.on("connection", (socket) => {
     );
     if (!player) return;
 
-    // If game hasn't started and player presses select, start the game
-    if (!room.gameStarted && action === "select") {
-      if (room.controllers.length >= 2) {
-        room.gameStarted = true;
-        io.to(roomCode).emit("game-started");
-        startGameLoop(roomCode);
+    // If game hasn't started, handle settings actions
+    if (!room.gameStarted) {
+      if (action === "select") {
+        // Start game
+        if (room.controllers.length >= 2) {
+          room.gameStarted = true;
+          io.to(roomCode).emit("game-started");
+          startGameLoop(roomCode);
+        }
+        return;
+      } else if (action === "switch") {
+        // Toggle between winScore and difficulty
+        room.settings.selectedSetting =
+          room.settings.selectedSetting === "winScore"
+            ? "difficulty"
+            : "winScore";
+        io.to(roomCode).emit("settings-updated", room.settings);
+        return;
+      } else if (action === "decrease" || action === "increase") {
+        // Adjust the selected setting
+        if (room.settings.selectedSetting === "winScore") {
+          const scores = [5, 10, 15];
+          const currentIndex = scores.indexOf(room.settings.winScore);
+          let newIndex;
+          if (action === "decrease") {
+            newIndex = Math.max(0, currentIndex - 1);
+          } else {
+            newIndex = Math.min(scores.length - 1, currentIndex + 1);
+          }
+          room.settings.winScore = scores[newIndex];
+        } else if (room.settings.selectedSetting === "difficulty") {
+          const difficulties = ["easy", "normal", "hard"];
+          const currentIndex = difficulties.indexOf(room.settings.difficulty);
+          let newIndex;
+          if (action === "decrease") {
+            newIndex = Math.max(0, currentIndex - 1);
+          } else {
+            newIndex = Math.min(difficulties.length - 1, currentIndex + 1);
+          }
+          room.settings.difficulty = difficulties[newIndex];
+        }
+        io.to(roomCode).emit("settings-updated", room.settings);
+        return;
       }
-      return;
     }
 
-    // Update paddle movement state based on hold/release
+    // Game is running - handle paddle movement
     if (action === "up-hold") {
       player.moving = "up";
     } else if (action === "down-hold") {
