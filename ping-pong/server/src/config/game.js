@@ -29,3 +29,19 @@ export const PHYSICS = {
   LEFT_PADDLE_X: 2,
   RIGHT_PADDLE_X: 98,
 };
+
+// Difficulty multipliers
+export const DIFFICULTY_MULTIPLIERS = {
+  easy: {
+    ballSpeed: 1.0, // Current speed (easy)
+    paddleSpeed: 1.0,
+  },
+  normal: {
+    ballSpeed: 1.5, // 50% faster
+    paddleSpeed: 1.3, // 30% faster
+  },
+  hard: {
+    ballSpeed: 2.2, // 120% faster
+    paddleSpeed: 1.6, // 60% faster
+  },
+};

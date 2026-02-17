@@ -1,4 +1,4 @@
-import { PHYSICS } from "../config/game.js";
+import { PHYSICS, DIFFICULTY_MULTIPLIERS } from "../config/game.js";
 
 export function updateBall(ball) {
   ball.x += ball.vx;
@@ -10,7 +10,15 @@ export function updateBall(ball) {
   }
 }
 
-export function checkBallCollisions(ball, player1, player2, winScore) {
+export function checkBallCollisions(
+  ball,
+  player1,
+  player2,
+  winScore,
+  difficulty = "normal",
+) {
+  const multiplier = DIFFICULTY_MULTIPLIERS[difficulty]?.ballSpeed || 1.0;
+
   const result = {
     paddleHit: null,
     scored: null,
@@ -41,7 +49,7 @@ export function checkBallCollisions(ball, player1, player2, winScore) {
   // Left wall - player 2 scores
   if (ball.x <= 0) {
     result.scored = 1; // Player 2 scores
-    ball.vx = PHYSICS.BALL_INITIAL_VX; // Reset to default speed going right
+    ball.vx = PHYSICS.BALL_INITIAL_VX * multiplier; // Reset with difficulty multiplier
     ball.x = 0;
 
     // Check for win
@@ -54,7 +62,7 @@ export function checkBallCollisions(ball, player1, player2, winScore) {
   // Right wall - player 1 scores
   if (ball.x >= 100) {
     result.scored = 2; // Player 1 scores
-    ball.vx = -PHYSICS.BALL_INITIAL_VX; // Reset to default speed going left
+    ball.vx = -PHYSICS.BALL_INITIAL_VX * multiplier; // Reset with difficulty multiplier
     ball.x = 100;
 
     // Check for win

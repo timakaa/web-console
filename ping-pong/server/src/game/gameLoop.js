@@ -1,4 +1,4 @@
-import { GAME_SETTINGS, PHYSICS } from "../config/game.js";
+import { GAME_SETTINGS } from "../config/game.js";
 import { updatePaddles } from "./paddlePhysics.js";
 import { updateBall, checkBallCollisions } from "./ballPhysics.js";
 
@@ -20,16 +20,20 @@ export function startGameLoop(io, roomManager, roomCode) {
       return;
     }
 
-    // Update game state
-    updatePaddles(room.controllers);
+    // Get difficulty from room settings
+    const difficulty = room.settings.difficulty || "normal";
+
+    // Update game state with difficulty
+    updatePaddles(room.controllers, difficulty);
     updateBall(room.ball);
 
-    // Check collisions
+    // Check collisions with difficulty
     const collisionResult = checkBallCollisions(
       room.ball,
       player1,
       player2,
       room.settings.winScore,
+      difficulty,
     );
 
     // Handle paddle hits

@@ -1,4 +1,8 @@
-import { GAME_SETTINGS, PHYSICS } from "../config/game.js";
+import {
+  GAME_SETTINGS,
+  PHYSICS,
+  DIFFICULTY_MULTIPLIERS,
+} from "../config/game.js";
 
 export class RoomManager {
   constructor() {
@@ -6,6 +10,9 @@ export class RoomManager {
   }
 
   createRoom(roomCode, controllers) {
+    const difficulty = GAME_SETTINGS.DEFAULT_DIFFICULTY;
+    const ballMultiplier = DIFFICULTY_MULTIPLIERS[difficulty]?.ballSpeed || 1.0;
+
     const room = {
       controllers: controllers.map((id, index) => ({
         id,
@@ -17,13 +24,13 @@ export class RoomManager {
       ball: {
         x: 50,
         y: 50,
-        vx: PHYSICS.BALL_INITIAL_VX,
-        vy: PHYSICS.BALL_INITIAL_VY,
+        vx: PHYSICS.BALL_INITIAL_VX * ballMultiplier,
+        vy: PHYSICS.BALL_INITIAL_VY * ballMultiplier,
       },
       gameStarted: false,
       settings: {
         winScore: GAME_SETTINGS.DEFAULT_WIN_SCORE,
-        difficulty: GAME_SETTINGS.DEFAULT_DIFFICULTY,
+        difficulty: difficulty,
         selectedSetting: "winScore", // "winScore" or "difficulty"
       },
     };
