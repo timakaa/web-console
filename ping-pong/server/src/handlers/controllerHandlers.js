@@ -36,6 +36,12 @@ export function handleControllerAction(
 
 function handleLobbyAction(io, roomManager, room, roomCode, action) {
   if (action === "select") {
+    // Prevent starting game immediately after reset
+    if (room.justReset) {
+      console.log(`[Ping Pong Server] Ignoring select - room just reset`);
+      return;
+    }
+
     // Start game
     if (room.controllers.length >= 2) {
       room.gameStarted = true;

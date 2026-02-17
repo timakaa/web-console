@@ -9,6 +9,9 @@ export function handleRequestRematch(io, roomManager, { roomCode }) {
     return;
   }
 
+  // Prevent immediate game start after reset
+  room.justReset = true;
+
   // Reset game state
   resetGameState(room);
 
@@ -17,6 +20,13 @@ export function handleRequestRematch(io, roomManager, { roomCode }) {
 
   // Send updated game state
   io.to(roomCode).emit("game-state", room);
+
+  // Clear the justReset flag after a short delay
+  setTimeout(() => {
+    if (room) {
+      room.justReset = false;
+    }
+  }, 500);
 }
 
 function resetGameState(room) {
