@@ -1,4 +1,8 @@
-import { GAME_SETTINGS } from "../config/game.js";
+import {
+  GAME_SETTINGS,
+  PHYSICS,
+  DIFFICULTY_MULTIPLIERS,
+} from "../config/game.js";
 
 export function handleSettingsSwitch(io, room, roomCode) {
   // Toggle between winScore and difficulty
@@ -12,6 +16,8 @@ export function handleSettingsAdjust(io, room, roomCode, action) {
     adjustWinScore(room, action);
   } else if (room.settings.selectedSetting === "difficulty") {
     adjustDifficulty(room, action);
+    // Update ball velocity immediately when difficulty changes
+    updateBallVelocityForDifficulty(room);
   }
   io.to(roomCode).emit("settings-updated", room.settings);
 }
@@ -42,4 +48,17 @@ function adjustDifficulty(room, action) {
   }
 
   room.settings.difficulty = difficulties[newIndex];
+}
+
+function updateBallVelocityForDifficulty(room) {
+  const difficulty = room.settings.difficulty;
+  const ballMultiplier = DIFFICULTY_MULTIPLIERS[difficulty]?.ballSpeed || 1.0;
+
+  // Preserve the direction of the ball velocity
+  const vxDirection = room.ball.vx >= 0 ? 1 : -1;
+  const vyDirection = room.ball.vy >= 0 ? 1 : -1;
+
+  // Update ball velocity with new difficulty multiplier
+  room.ball.vx = PHYSICS.BALL_INITIAL_VX * ballMultiplier * vxDirection;
+  room.ball.vy = PHYSICS.BALL_INITIAL_VY * ballMultiplier * vyDirection;
 }

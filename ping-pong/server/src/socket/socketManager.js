@@ -7,6 +7,7 @@ import {
 } from "../handlers/connectionHandlers.js";
 import { handleStartGameRequest } from "../handlers/gameHandlers.js";
 import { handleControllerAction } from "../handlers/controllerHandlers.js";
+import { handleRequestRematch } from "../handlers/rematchHandlers.js";
 
 export function setupSocketHandlers(io, roomManager) {
   io.on("connection", (socket) => {
@@ -40,6 +41,11 @@ export function setupSocketHandlers(io, roomManager) {
     // Controller action
     socket.on("controller-action", (data) => {
       handleControllerAction(io, roomManager, data);
+    });
+
+    // Request rematch
+    socket.on("request-rematch", (data) => {
+      handleRequestRematch(io, roomManager, data);
     });
 
     // Disconnect

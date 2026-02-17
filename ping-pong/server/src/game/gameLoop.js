@@ -54,6 +54,7 @@ export function startGameLoop(io, roomManager, roomCode) {
 
     // Check for win condition
     if (collisionResult.gameEnded) {
+      room.gameEnded = true;
       io.to(roomCode).emit("game-ended", {
         winner: collisionResult.winner,
         player1Score: player1.score,

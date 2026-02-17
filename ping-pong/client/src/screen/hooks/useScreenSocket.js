@@ -86,11 +86,13 @@ export function useScreenSocket() {
         console.log("Game ended:", result);
         setGameEnded(true);
         setGameResult(result);
+      });
 
-        // Redirect to main menu after 5 seconds
-        setTimeout(() => {
-          window.location.href = MAIN_CONSOLE_URL;
-        }, 5000);
+      newSocket.on("game-reset", () => {
+        console.log("Game reset, returning to lobby");
+        setGameStarted(false);
+        setGameEnded(false);
+        setGameResult(null);
       });
 
       setSocket(newSocket);

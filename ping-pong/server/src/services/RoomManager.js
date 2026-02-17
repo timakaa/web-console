@@ -28,6 +28,7 @@ export class RoomManager {
         vy: PHYSICS.BALL_INITIAL_VY * ballMultiplier,
       },
       gameStarted: false,
+      gameEnded: false,
       settings: {
         winScore: GAME_SETTINGS.DEFAULT_WIN_SCORE,
         difficulty: difficulty,

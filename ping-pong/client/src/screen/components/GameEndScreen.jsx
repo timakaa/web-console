@@ -57,10 +57,10 @@ function GameEndScreen() {
           </div>
         </div>
 
-        {/* Return message */}
+        {/* Instructions */}
         <div className='text-center mt-12'>
           <p className='text-gray-300 text-xl'>
-            Returning to main menu in a moment...
+            Press "Play Again" on any controller to start a new match
           </p>
         </div>
       </div>

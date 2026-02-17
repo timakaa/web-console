@@ -3,6 +3,7 @@ import {
   handleSettingsSwitch,
   handleSettingsAdjust,
 } from "./settingsHandlers.js";
+import { handleRequestRematch } from "./rematchHandlers.js";
 
 export function handleControllerAction(
   io,
@@ -16,6 +17,12 @@ export function handleControllerAction(
     (p) => p.playerId === parseInt(playerId),
   );
   if (!player) return;
+
+  // If game has ended and player presses select, request rematch
+  if (room.gameEnded && action === "select") {
+    handleRequestRematch(io, roomManager, { roomCode });
+    return;
+  }
 
   // If game hasn't started, handle settings actions
   if (!room.gameStarted) {
@@ -32,6 +39,7 @@ function handleLobbyAction(io, roomManager, room, roomCode, action) {
     // Start game
     if (room.controllers.length >= 2) {
       room.gameStarted = true;
+      room.gameEnded = false; // Ensure gameEnded is false when starting
       io.to(roomCode).emit("game-started");
       startGameLoop(io, roomManager, roomCode);
     }
