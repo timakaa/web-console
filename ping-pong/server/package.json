@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node index.js"
+    "start": "node src/app.js",
+    "dev": "node src/app.js"
   },
   "dependencies": {
     "socket.io": "^4.6.1",
