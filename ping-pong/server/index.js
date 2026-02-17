@@ -78,12 +78,31 @@ io.on("connection", (socket) => {
     const room = rooms.get(roomCode);
     if (room) {
       socket.emit("game-state", room);
+      // Don't auto-start game loop anymore
+    }
+  });
 
-      // Start game loop if not started
-      if (!room.gameStarted) {
-        room.gameStarted = true;
-        startGameLoop(roomCode);
-      }
+  // Start game request from screen or controller
+  socket.on("start-game-request", ({ roomCode }) => {
+    console.log(`[Ping Pong Server] Start game request for room ${roomCode}`);
+    const room = rooms.get(roomCode);
+
+    if (!room) {
+      console.log(`[Ping Pong Server] Room ${roomCode} not found`);
+      return;
+    }
+
+    // Check if we have both players
+    if (room.controllers.length < 2) {
+      console.log(`[Ping Pong Server] Not enough players in room ${roomCode}`);
+      return;
+    }
+
+    // Start game loop if not started
+    if (!room.gameStarted) {
+      room.gameStarted = true;
+      io.to(roomCode).emit("game-started");
+      startGameLoop(roomCode);
     }
   });
 
@@ -96,6 +115,16 @@ io.on("connection", (socket) => {
       (p) => p.playerId === parseInt(playerId),
     );
     if (!player) return;
+
+    // If game hasn't started and player presses select, start the game
+    if (!room.gameStarted && action === "select") {
+      if (room.controllers.length >= 2) {
+        room.gameStarted = true;
+        io.to(roomCode).emit("game-started");
+        startGameLoop(roomCode);
+      }
+      return;
+    }
 
     // Update paddle movement state based on hold/release
     if (action === "up-hold") {

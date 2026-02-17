@@ -11,6 +11,7 @@ function Controller() {
   const [isConnected, setIsConnected] = useState(false);
   const [roomCode, setRoomCode] = useState("");
   const [playerId, setPlayerId] = useState(null);
+  const [gameStarted, setGameStarted] = useState(false);
   const connectionStableRef = useRef(false);
 
   useEffect(() => {
@@ -63,6 +64,11 @@ function Controller() {
         window.location.href = MAIN_CONSOLE_URL;
       });
 
+      newSocket.on("game-started", () => {
+        console.log("Game started!");
+        setGameStarted(true);
+      });
+
       setSocket(newSocket);
 
       return () => {
@@ -80,6 +86,10 @@ function Controller() {
         action,
       });
     }
+  };
+
+  const handleStartGame = () => {
+    sendAction("select");
   };
 
   const handleTouchStart = (direction) => {
@@ -139,26 +149,45 @@ function Controller() {
         {/* Spacer */}
         <div className='flex-1'></div>
 
-        {/* Controls */}
-        <div className='flex flex-col gap-4 pb-8 px-6'>
-          <button
-            className='h-24 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 hover:from-blue-400 hover:via-blue-500 hover:to-blue-600 active:from-blue-700 active:via-blue-800 active:to-blue-900 rounded-2xl shadow-xl shadow-blue-900/50 flex flex-col items-center justify-center text-3xl font-black transition-all active:scale-95 border-2 border-blue-400/30 relative overflow-hidden select-none'
-            onTouchStart={() => handleTouchStart("up")}
-            onTouchEnd={() => handleTouchEnd("up")}
-          >
-            <div className='absolute inset-0 bg-gradient-to-t from-transparent to-white/20'></div>
-            <span className='text-4xl drop-shadow-lg relative z-10'>▲</span>
-          </button>
+        {/* Controls - Show different UI based on game state */}
+        {!gameStarted ? (
+          // Lobby controls - just start button
+          <div className='flex flex-col gap-4 pb-8 px-6'>
+            <div className='text-center mb-4'>
+              <p className='text-lg text-gray-300 mb-2'>Waiting to start...</p>
+              <p className='text-sm text-gray-400'>Press START when ready</p>
+            </div>
+            <button
+              className='h-24 bg-gradient-to-br from-green-500 via-green-600 to-green-700 hover:from-green-400 hover:via-green-500 hover:to-green-600 active:from-green-700 active:via-green-800 active:to-green-900 rounded-2xl shadow-xl shadow-green-900/50 flex flex-col items-center justify-center text-2xl font-black transition-all active:scale-95 border-2 border-green-400/30 relative overflow-hidden select-none'
+              onClick={handleStartGame}
+              onTouchStart={handleStartGame}
+            >
+              <div className='absolute inset-0 bg-gradient-to-t from-transparent to-white/20'></div>
+              <span className='drop-shadow-lg relative z-10'>START GAME</span>
+            </button>
+          </div>
+        ) : (
+          // Game controls - up/down buttons
+          <div className='flex flex-col gap-4 pb-8 px-6'>
+            <button
+              className='h-24 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 hover:from-blue-400 hover:via-blue-500 hover:to-blue-600 active:from-blue-700 active:via-blue-800 active:to-blue-900 rounded-2xl shadow-xl shadow-blue-900/50 flex flex-col items-center justify-center text-3xl font-black transition-all active:scale-95 border-2 border-blue-400/30 relative overflow-hidden select-none'
+              onTouchStart={() => handleTouchStart("up")}
+              onTouchEnd={() => handleTouchEnd("up")}
+            >
+              <div className='absolute inset-0 bg-gradient-to-t from-transparent to-white/20'></div>
+              <span className='text-4xl drop-shadow-lg relative z-10'>▲</span>
+            </button>
 
-          <button
-            className='h-24 bg-gradient-to-br from-red-500 via-red-600 to-red-700 hover:from-red-400 hover:via-red-500 hover:to-red-600 active:from-red-700 active:via-red-800 active:to-red-900 rounded-2xl shadow-xl shadow-red-900/50 flex flex-col items-center justify-center text-3xl font-black transition-all active:scale-95 border-2 border-red-400/30 relative overflow-hidden select-none'
-            onTouchStart={() => handleTouchStart("down")}
-            onTouchEnd={() => handleTouchEnd("down")}
-          >
-            <div className='absolute inset-0 bg-gradient-to-t from-transparent to-white/20'></div>
-            <span className='text-4xl drop-shadow-lg relative z-10'>▼</span>
-          </button>
-        </div>
+            <button
+              className='h-24 bg-gradient-to-br from-red-500 via-red-600 to-red-700 hover:from-red-400 hover:via-red-500 hover:to-red-600 active:from-red-700 active:via-red-800 active:to-red-900 rounded-2xl shadow-xl shadow-red-900/50 flex flex-col items-center justify-center text-3xl font-black transition-all active:scale-95 border-2 border-red-400/30 relative overflow-hidden select-none'
+              onTouchStart={() => handleTouchStart("down")}
+              onTouchEnd={() => handleTouchEnd("down")}
+            >
+              <div className='absolute inset-0 bg-gradient-to-t from-transparent to-white/20'></div>
+              <span className='text-4xl drop-shadow-lg relative z-10'>▼</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

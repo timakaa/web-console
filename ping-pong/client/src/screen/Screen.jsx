@@ -12,6 +12,7 @@ function Screen() {
   const [isConnected, setIsConnected] = useState(false);
   const [roomCode, setRoomCode] = useState("");
   const [gameState, setGameState] = useState(null);
+  const [gameStarted, setGameStarted] = useState(false);
   const connectionStableRef = useRef(false);
 
   useEffect(() => {
@@ -58,6 +59,10 @@ function Screen() {
         setGameState(state);
       });
 
+      newSocket.on("game-started", () => {
+        setGameStarted(true);
+      });
+
       newSocket.on("paddle-hit", () => {
         const sound = new Audio(pingPongSound);
         sound.volume = 0.5;
@@ -99,6 +104,83 @@ function Screen() {
         <div className='text-center'>
           <div className='text-6xl mb-4 animate-pulse'>🏓</div>
           <p className='text-xl'>Connecting to game...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show lobby/settings screen before game starts
+  if (!gameStarted) {
+    const { controllers } = gameState;
+    const player1 = controllers[0];
+    const player2 = controllers[1];
+
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 text-white flex flex-col items-center justify-center p-8'>
+        <div className='max-w-2xl w-full'>
+          {/* Title */}
+          <div className='text-center mb-12'>
+            <div className='text-8xl mb-4'>🏓</div>
+            <h1 className='text-5xl font-bold mb-2'>Ping Pong</h1>
+            <p className='text-gray-400'>Room: {roomCode}</p>
+          </div>
+
+          {/* Players */}
+          <div className='grid grid-cols-2 gap-6 mb-12'>
+            <div className='bg-gray-800/50 rounded-xl p-6 text-center'>
+              <div className='text-4xl mb-3'>👤</div>
+              <h3 className='text-xl font-bold mb-2'>Player 1</h3>
+              <div
+                className={`text-sm ${player1 ? "text-green-400" : "text-gray-500"}`}
+              >
+                {player1 ? "✓ Connected" : "Waiting..."}
+              </div>
+            </div>
+            <div className='bg-gray-800/50 rounded-xl p-6 text-center'>
+              <div className='text-4xl mb-3'>👤</div>
+              <h3 className='text-xl font-bold mb-2'>Player 2</h3>
+              <div
+                className={`text-sm ${player2 ? "text-green-400" : "text-gray-500"}`}
+              >
+                {player2 ? "✓ Connected" : "Waiting..."}
+              </div>
+            </div>
+          </div>
+
+          {/* Instructions */}
+          <div className='bg-gray-800/30 rounded-xl p-6 mb-8'>
+            <h3 className='text-lg font-bold mb-3 text-center'>How to Play</h3>
+            <ul className='space-y-2 text-gray-300 text-sm'>
+              <li>
+                • Use UP and DOWN buttons on your controller to move your paddle
+              </li>
+              <li>• First player to score wins!</li>
+              <li>• Ball speed increases with each paddle hit</li>
+            </ul>
+          </div>
+
+          {/* Start Button */}
+          <div className='text-center'>
+            {player1 && player2 ? (
+              <div>
+                <button
+                  onClick={() =>
+                    socket.emit("start-game-request", { roomCode })
+                  }
+                  className='bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl text-xl transition-colors'
+                >
+                  Start Game
+                </button>
+                <p className='text-gray-400 text-sm mt-4'>
+                  Or press SELECT on any controller
+                </p>
+              </div>
+            ) : (
+              <div className='text-gray-400'>
+                Waiting for all players to connect...
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
