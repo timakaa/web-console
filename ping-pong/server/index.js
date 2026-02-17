@@ -239,11 +239,33 @@ function startGameLoop(roomCode) {
       // Bounce off left wall with reset velocity
       room.ball.vx = 0.5; // Reset to default speed going right
       room.ball.x = 0;
+
+      // Check for win condition
+      if (player2.score >= room.settings.winScore) {
+        io.to(roomCode).emit("game-ended", {
+          winner: 2,
+          player1Score: player1.score,
+          player2Score: player2.score,
+        });
+        clearInterval(interval);
+        return;
+      }
     } else if (room.ball.x >= 100) {
       player1.score++;
       // Bounce off right wall with reset velocity
       room.ball.vx = -0.5; // Reset to default speed going left
       room.ball.x = 100;
+
+      // Check for win condition
+      if (player1.score >= room.settings.winScore) {
+        io.to(roomCode).emit("game-ended", {
+          winner: 1,
+          player1Score: player1.score,
+          player2Score: player2.score,
+        });
+        clearInterval(interval);
+        return;
+      }
     }
 
     // Broadcast game state

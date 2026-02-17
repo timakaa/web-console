@@ -12,6 +12,8 @@ function Controller() {
   const [roomCode, setRoomCode] = useState("");
   const [playerId, setPlayerId] = useState(null);
   const [gameStarted, setGameStarted] = useState(false);
+  const [gameEnded, setGameEnded] = useState(false);
+  const [gameResult, setGameResult] = useState(null);
   const connectionStableRef = useRef(false);
 
   useEffect(() => {
@@ -59,9 +61,15 @@ function Controller() {
         }
       });
 
-      newSocket.on("game-ended", () => {
-        console.log("Game ended, returning to main menu");
-        window.location.href = MAIN_CONSOLE_URL;
+      newSocket.on("game-ended", (result) => {
+        console.log("Game ended:", result);
+        setGameEnded(true);
+        setGameResult(result);
+
+        // Redirect to main menu after 5 seconds
+        setTimeout(() => {
+          window.location.href = MAIN_CONSOLE_URL;
+        }, 5000);
       });
 
       newSocket.on("game-started", () => {
@@ -107,6 +115,40 @@ function Controller() {
           <h2 className='text-3xl font-bold mb-4 text-red-400'>Invalid URL</h2>
           <p className='text-gray-400'>
             Please access this controller through the game system
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show victory/defeat screen if game ended
+  if (gameEnded && gameResult) {
+    const playerNum = parseInt(playerId);
+    const isWinner = gameResult.winner === playerNum;
+
+    return (
+      <div
+        className={`h-screen flex flex-col items-center justify-center text-white overflow-hidden fixed inset-0 ${
+          isWinner
+            ? "bg-gradient-to-br from-green-600 via-green-700 to-green-900"
+            : "bg-gradient-to-br from-red-600 via-red-700 to-red-900"
+        }`}
+      >
+        <div className='text-center'>
+          <div className='text-9xl mb-8 animate-bounce'>
+            {isWinner ? "🏆" : "😢"}
+          </div>
+          <h1 className='text-7xl font-black mb-6'>
+            {isWinner ? "VICTORY!" : "DEFEAT"}
+          </h1>
+          <p className='text-3xl mb-4'>
+            Score:{" "}
+            {playerNum === 1
+              ? gameResult.player1Score
+              : gameResult.player2Score}
+          </p>
+          <p className='text-xl text-white/70 mt-8'>
+            Returning to main menu...
           </p>
         </div>
       </div>
