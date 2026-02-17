@@ -49,7 +49,7 @@ io.on("connection", (socket) => {
         score: 0,
         moving: null, // null, 'up', or 'down'
       })),
-      ball: { x: 50, y: 50, vx: 0.5, vy: 0.3 },
+      ball: { x: 50, y: 50, vx: 0.5, vy: 0.6 },
       gameStarted: false,
     });
 
@@ -149,36 +149,36 @@ function startGameLoop(roomCode) {
     }
 
     // Ball collision with paddles
-    // Left paddle (player 1)
-    if (room.ball.x <= 5 && Math.abs(room.ball.y - player1.y) < 10) {
+    // Left paddle (player 1) - paddle is at ~1% from left edge
+    if (room.ball.x <= 2 && Math.abs(room.ball.y - player1.y) < 10) {
       room.ball.vx *= -1.05; // Reverse direction and increase speed by 5%
-      room.ball.x = 5;
+      room.ball.x = 2;
       io.to(roomCode).emit("paddle-hit", { playerId: 1 });
     }
 
-    // Right paddle (player 2)
-    if (room.ball.x >= 95 && Math.abs(room.ball.y - player2.y) < 10) {
+    // Right paddle (player 2) - paddle is at ~99% from left edge
+    if (room.ball.x >= 98 && Math.abs(room.ball.y - player2.y) < 10) {
       room.ball.vx *= -1.05; // Reverse direction and increase speed by 5%
-      room.ball.x = 95;
+      room.ball.x = 98;
       io.to(roomCode).emit("paddle-hit", { playerId: 2 });
     }
 
-    // Score points
+    // Score points and bounce off walls
     if (room.ball.x <= 0) {
       player2.score++;
-      resetBall(room);
+      // Bounce off left wall with reset velocity
+      room.ball.vx = 0.5; // Reset to default speed going right
+      room.ball.x = 0;
     } else if (room.ball.x >= 100) {
       player1.score++;
-      resetBall(room);
+      // Bounce off right wall with reset velocity
+      room.ball.vx = -0.5; // Reset to default speed going left
+      room.ball.x = 100;
     }
 
     // Broadcast game state
     io.to(roomCode).emit("game-state", room);
   }, 1000 / 60); // 60 FPS
-}
-
-function resetBall(room) {
-  room.ball = { x: 50, y: 50, vx: 0.5, vy: 0.3 };
 }
 
 httpServer.listen(PORT, () => {

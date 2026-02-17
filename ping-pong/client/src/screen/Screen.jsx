@@ -95,7 +95,7 @@ function Screen() {
 
   if (!isConnected || !gameState) {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-900 text-white'>
+      <div className='min-h-screen overflow-hidden flex items-center justify-center bg-gray-900 text-white'>
         <div className='text-center'>
           <div className='text-6xl mb-4 animate-pulse'>🏓</div>
           <p className='text-xl'>Connecting to game...</p>
